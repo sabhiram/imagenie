@@ -1,0 +1,67 @@
+# Global font override
+fontpath: ./assets/UbuntuMono-Bold.ttf
+
+# The context is the data that we wish to have available to each
+# output step.  The context is merged with the individual item
+# being processed in the meta-data section.
+context:
+  value: 2.000000     # Value of PIVX that has been awarded to each address.
+  piv_usd: 2.02       # Current PIVX exchange rate in USD.
+  expiry: 07/29/2018  # Expiry date for above funds
+
+# The metadata section contains a list of objects that have a bunch
+# of key,value pairs.  These can be arbitrary and will be used to
+# inject values into any of the template strings in the "output"
+# section.
+metadata:
+  - private_key: 87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ
+    another_key: 1
+  - private_key: 87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ
+    another_key: 2
+  - private_key: 87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ
+    another_key: 3
+  - private_key: 87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ
+    another_key: 4
+
+# The outputs section defines a list of outputs to generate per item in
+# the metadata section.  Here we define the prefix which will be added
+# to each image generated, the background image to build the overlays
+# upon, and the various overlays themselves.  Note that the overlays
+# only currently support "text" and "qr" types and are fairly limited in
+# what they can actually do.
+#
+# Some taken for granted context functions include things like:
+#   firstHalf  -- takes a string and returns the first half of it
+#   secondHalf -- takes a string and returns the second half of it
+outputs:
+  - prefix: inner
+    background: ./assets/PPIV_Inside.png
+    overlays:
+      - type: text
+        xoffset: 284
+        yoffset: 250
+        size: 40
+        template: "Cash Value: {{ .value * .piv_usd }}"
+      - type: text
+        xoffset: 284
+        yoffset: 295
+        size: 40
+        template: "PIVS: {{ .value }}"
+      - type: qr
+        xoffset: 456
+        yoffset: 560
+        size: 180
+        template: "{{ .private_key }}"
+      - type: text
+        xoffset: 354
+        yoffset: 742
+        size: 22
+        template: "{{ firstHalf .private_key }}"
+      - type: text
+        xoffset: 354
+        yoffset: 762
+        size: 22
+        template: "{{ secondHalf .private_key }}"
+
+
+

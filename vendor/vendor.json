@@ -1,0 +1,71 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "w01kP96jx5UAf+uWB8m0w8Xghas=",
+			"path": "github.com/golang/freetype",
+			"revision": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4",
+			"revisionTime": "2017-06-09T00:35:04Z"
+		},
+		{
+			"checksumSHA1": "aJ/kX/eCUlrCJBZ26Hwh/RXzAIw=",
+			"path": "github.com/golang/freetype/raster",
+			"revision": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4",
+			"revisionTime": "2017-06-09T00:35:04Z"
+		},
+		{
+			"checksumSHA1": "I3u9Uh9thka1gsgch6QEiPkaAr0=",
+			"path": "github.com/golang/freetype/truetype",
+			"revision": "e2365dfdc4a05e4b8299a783240d4a7d5a65d4e4",
+			"revisionTime": "2017-06-09T00:35:04Z"
+		},
+		{
+			"path": "github.com/golang/truetype",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "r5eQHkttko6kxroDEENXbmXKrSs=",
+			"path": "github.com/nfnt/resize",
+			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
+			"revisionTime": "2016-07-24T20:39:20Z"
+		},
+		{
+			"checksumSHA1": "1rIqxle3DD0DL8CpoVXb0KgayCw=",
+			"path": "github.com/skip2/go-qrcode",
+			"revision": "0bb60b5a716144fa55da373bab578cca49a537d7",
+			"revisionTime": "2017-04-04T20:54:33Z"
+		},
+		{
+			"checksumSHA1": "xkuxp8PnGrQUsIXMiIOCk4U5IGw=",
+			"path": "github.com/skip2/go-qrcode/bitset",
+			"revision": "0bb60b5a716144fa55da373bab578cca49a537d7",
+			"revisionTime": "2017-04-04T20:54:33Z"
+		},
+		{
+			"checksumSHA1": "UtPg/z5chOpfiJvr29Or0oUx1Bs=",
+			"path": "github.com/skip2/go-qrcode/reedsolomon",
+			"revision": "0bb60b5a716144fa55da373bab578cca49a537d7",
+			"revisionTime": "2017-04-04T20:54:33Z"
+		},
+		{
+			"checksumSHA1": "+U1IB5N4LDS74y4fXjARb4/S4IE=",
+			"path": "golang.org/x/image/font",
+			"revision": "426cfd8eeb6e08ab1932954e09e3c2cb2bc6e36d",
+			"revisionTime": "2017-05-14T06:33:48Z"
+		},
+		{
+			"checksumSHA1": "euzvwlMLxyD0hwc+raoVsDLv6j4=",
+			"path": "golang.org/x/image/math/fixed",
+			"revision": "426cfd8eeb6e08ab1932954e09e3c2cb2bc6e36d",
+			"revisionTime": "2017-05-14T06:33:48Z"
+		},
+		{
+			"checksumSHA1": "o20lmjzBQyKD5LfLZ3OhUoMkLds=",
+			"path": "gopkg.in/yaml.v2",
+			"revision": "25c4ec802a7d637f88d584ab26798e94ad14c13b",
+			"revisionTime": "2017-07-21T12:20:51Z"
+		}
+	],
+	"rootPath": "github.com/sabhiram/PIVX-WalletGen"
+}
