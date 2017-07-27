@@ -41,7 +41,7 @@ outputs:
         xoffset: 284
         yoffset: 250
         size: 40
-        template: "Cash Value: {{ .value * .piv_usd }}"
+        template: "Cash Value: {{ mul .value .piv_usd }}"
       - type: text
         xoffset: 284
         yoffset: 295
@@ -62,6 +62,17 @@ outputs:
         yoffset: 762
         size: 22
         template: "{{ secondHalf .private_key }}"
-
-
+  - prefix: output
+    background: ./assets/PPIV_Outside.png
+    overlays:
+      - type: text
+        xoffset: 350
+        yoffset: 688
+        size: 40
+        template: "{{ mul .value .piv_usd }}"
+      - type: text
+        xoffset: 50
+        yoffset: 688
+        size: 40
+        template: "{{ precise4 .value }}"
 

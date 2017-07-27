@@ -15,9 +15,8 @@ import (
 ////////////////////////////////////////////////////////////////////////////////
 
 const (
-	fontpath = "./assets/UbuntuMono-Bold.ttf"
-	dpi      = float64(72)
-	spacing  = float64(1.1)
+	dpi     = float64(72)
+	spacing = float64(1.1)
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -73,7 +72,7 @@ func (o *Overlay) Render() (image.Image, int, int, error) {
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func init() {
+func SetupFont(fontpath string) {
 	// Read the font data.
 	fontBytes, err := ioutil.ReadFile(fontpath)
 	if err != nil {
