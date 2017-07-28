@@ -4,15 +4,15 @@ Ok, so the inter-go-lactic foundation has tasked you with providing a million im
 
 This directory contains all the assets needed to run the `imagenie` tool, and overlay this background:
 
-TODO: Image
+![background](https://raw.githubusercontent.com/sabhiram/imagenie/master/example/assets/bg.png)
 
 With this sexy gopher:
 
-TODO: Gopher image
+![gopher](https://raw.githubusercontent.com/sabhiram/imagenie/master/example/assets/gopher.png)
 
 ... and a few other pieces of information, to generate this:
 
-TODO: Combined image
+![gopher](https://raw.githubusercontent.com/sabhiram/imagenie/master/example/assets/output.png)
 
 You can also generate a whole batch of them (like a million)!
 
