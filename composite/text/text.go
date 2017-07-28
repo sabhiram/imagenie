@@ -4,6 +4,7 @@ package text
 
 import (
 	"image"
+	"image/color"
 	"image/draw"
 	"io/ioutil"
 
@@ -22,9 +23,7 @@ const (
 ////////////////////////////////////////////////////////////////////////////////
 
 var (
-	fg = image.Black
-	bg = image.Transparent
-	f  *truetype.Font
+	f *truetype.Font
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,14 +32,18 @@ type Overlay struct {
 	xoff, yoff int
 	size       float64
 	value      string
+	fg         color.Color
+	bg         color.Color
 }
 
-func NewOverlay(x, y, size int, value string) *Overlay {
+func NewOverlay(x, y, size int, value string, fg, bg color.Color) *Overlay {
 	return &Overlay{
 		xoff:  x,
 		yoff:  y,
 		size:  float64(size),
 		value: value,
+		fg:    fg,
+		bg:    bg,
 	}
 }
 
@@ -49,6 +52,9 @@ func NewOverlay(x, y, size int, value string) *Overlay {
 func (o *Overlay) Render() (image.Image, int, int, error) {
 	// Create an image to render the text on.
 	img := image.NewRGBA(image.Rect(0, 0, int(o.size*spacing*float64(len(o.value))), int(o.size*1.5)))
+
+	fg := image.NewUniform(o.fg)
+	bg := image.NewUniform(o.bg)
 
 	// Draw onto the image and setup the context.
 	draw.Draw(img, img.Bounds(), bg, image.ZP, draw.Src)

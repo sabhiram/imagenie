@@ -15,7 +15,11 @@ Renderable interface defined below.
 import (
 	"fmt"
 	"image"
+	"image/color"
 	"os"
+
+	_ "image/jpeg"
+	_ "image/png"
 )
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -61,10 +65,19 @@ func BuildImage(bgpath string, items []Renderable) (*image.RGBA, error) {
 		for x := 0; x < w; x++ {
 			for y := 0; y < h; y++ {
 				if x+xoff < bounds.Max.X && y+yoff < bounds.Max.Y {
-					_, _, _, a := img.At(x, y).RGBA()
-					if a >= 3*0xffff/4 {
-						out.Set(x+xoff, y+yoff, img.At(x, y))
+					rf, gf, bf, af := img.At(x, y).RGBA()
+					rb, gb, bb, ab := out.At(x+xoff, y+yoff).RGBA()
+					alpha := float64(af) / float64(0xffff)
+					beta := 1.0 - alpha
+
+					// Some hacky alpha blending - revisit later :)
+					c := color.RGBA{
+						uint8((float64(rf)*alpha + float64(rb)*beta) / 256),
+						uint8((float64(gf)*alpha + float64(gb)*beta) / 256),
+						uint8((float64(bf)*alpha + float64(bb)*beta) / 256),
+						uint8((float64(af)*alpha + float64(ab)*beta) / 256),
 					}
+					out.Set(x+xoff, y+yoff, c)
 				}
 			}
 		}

@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"image/color"
 	"image/png"
 	"log"
 	"os"
@@ -72,6 +73,8 @@ type Overlay struct {
 	YOffset  int    `yaml:"yoffset"`
 	Size     int    `yaml:"size"`
 	Template string `yaml:"template"`
+	FgColor  string `yaml:"foreground"`
+	BgColor  string `yaml:"background"`
 }
 
 func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderable, error) {
@@ -81,11 +84,39 @@ func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderab
 		log.Fatalf("Unable to execute template, error: %s\n", err.Error())
 	}
 
+	// Setup foreground color.
+	var fg color.Color
+	switch o.FgColor {
+	case "", "black":
+		fg = color.Black
+	case "transparent":
+		fg = color.Transparent
+	case "white":
+		fg = color.White
+	default:
+		fmt.Printf("TODO: Process fg color: %s\n", o.FgColor)
+		fg = color.White
+	}
+
+	// Setup background color.
+	var bg color.Color
+	switch o.BgColor {
+	case "transparent":
+		bg = color.Transparent
+	case "", "white":
+		bg = color.White
+	case "black":
+		bg = color.Black
+	default:
+		fmt.Printf("TODO: Process bg color: %s\n", o.BgColor)
+		bg = color.Black
+	}
+
 	switch o.Type {
 	case "qr":
-		return qr.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String()), nil
+		return qr.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
 	case "text":
-		return text.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String()), nil
+		return text.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
 	}
 	return nil, fmt.Errorf("invalid renderable for overlay type: %s", o.Type)
 }
@@ -103,7 +134,7 @@ type Output struct {
 type Specification struct {
 	FontPath string                   `yaml:"fontpath"`
 	Context  map[string]interface{}   `yaml:"context"`
-	MetaData []map[string]interface{} `yaml:"metadata"`
+	Items    []map[string]interface{} `yaml:"items"`
 	Outputs  []*Output                `yaml:"outputs"`
 }
 
@@ -132,7 +163,7 @@ func main() {
 	// Load the global font that is specified in the sample file.
 	text.SetupFont(s.FontPath)
 
-	for index, m := range s.MetaData {
+	for index, m := range s.Items {
 		// Build the context for each metadata item.
 		ctxt := s.Context
 		for k, v := range m {

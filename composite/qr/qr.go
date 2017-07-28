@@ -15,14 +15,18 @@ type Overlay struct {
 	xoff, yoff int
 	width      int
 	value      string
+	fg         color.Color
+	bg         color.Color
 }
 
-func NewOverlay(x, y, w int, value string) *Overlay {
+func NewOverlay(x, y, w int, value string, fg, bg color.Color) *Overlay {
 	return &Overlay{
 		xoff:  x,
 		yoff:  y,
 		width: w,
 		value: value,
+		fg:    fg,
+		bg:    bg,
 	}
 }
 
@@ -34,8 +38,8 @@ func (o *Overlay) Render() (image.Image, int, int, error) {
 		return nil, 0, 0, err
 	}
 
-	qr.ForegroundColor = color.RGBA{0, 0, 0, 255}
-	qr.BackgroundColor = color.RGBA{255, 255, 255, 0}
+	qr.ForegroundColor = o.fg
+	qr.BackgroundColor = o.bg
 
 	// Note: We have a custom version of the `qr` library with one small
 	// additional feature to scale the image up to avoid the QR having a large

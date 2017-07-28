@@ -20,7 +20,7 @@ Similar to QR overlays, the text overlays will also require the X and Y offsets 
 
 ## Sample Usage
 
-TODO
+
 
 ## Installation
 
