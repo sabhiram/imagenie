@@ -14,7 +14,9 @@ All "jobs" start off with a background image.  This is the base image which will
 
 The default foreground color is black, and the default background is transparent. You can specify colors for the `foreground` and `background` in the following ways:
 
-TODO
+1. `black`, `white` and `transparent` - are valid values.
+2. Any hex value in the form of "#FFFFFF" (white)
+3. Any hex value in the form of "#F00" (red)
 
 All overlays are required to be one of the following three types (which are shown in greater detail below):
 1. `text`  - simple text based overlay

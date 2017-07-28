@@ -78,6 +78,55 @@ type Overlay struct {
 	BgColor  string `yaml:"background"`
 }
 
+// Hex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
+// NOTE: This code has been borrowed and adapted from:
+// 		 https://github.com/lucasb-eyer/go-colorful/blob/master/colors.go
+func Hex(scol string) (color.Color, error) {
+	format := "#%02x%02x%02x"
+	factor := 1.0
+	if len(scol) == 4 {
+		format = "#%1x%1x%1x"
+		factor = 16.0
+	}
+
+	var r, g, b uint8
+	n, err := fmt.Sscanf(scol, format, &r, &g, &b)
+	if err != nil {
+		return color.RGBA{}, err
+	}
+	if n != 3 {
+		return color.RGBA{}, fmt.Errorf("color: %v is not a hex-color", scol)
+	}
+	return color.RGBA{
+		uint8(float64(r) * factor),
+		uint8(float64(g) * factor),
+		uint8(float64(b) * factor),
+		255,
+	}, nil
+}
+
+func getColor(c string, defaultColor color.Color) color.Color {
+	switch c {
+	case "black":
+		return color.Black
+	case "transparent":
+		return color.Transparent
+	case "white":
+		return color.White
+	case "":
+		return defaultColor
+	default:
+		if c[0] == '#' {
+			col, err := Hex(c)
+			if err != nil {
+				return defaultColor
+			}
+			return col
+		}
+	}
+	return defaultColor
+}
+
 func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderable, error) {
 	var buf bytes.Buffer
 	t := template.Must(template.New("output").Funcs(funcMap).Parse(o.Template))
@@ -86,32 +135,8 @@ func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderab
 	}
 
 	// Setup foreground color.
-	var fg color.Color
-	switch o.FgColor {
-	case "", "black":
-		fg = color.Black
-	case "transparent":
-		fg = color.Transparent
-	case "white":
-		fg = color.White
-	default:
-		fmt.Printf("TODO: Process fg color: %s\n", o.FgColor)
-		fg = color.White
-	}
-
-	// Setup background color.
-	var bg color.Color
-	switch o.BgColor {
-	case "transparent":
-		bg = color.Transparent
-	case "", "white":
-		bg = color.White
-	case "black":
-		bg = color.Black
-	default:
-		fmt.Printf("TODO: Process bg color: %s\n", o.BgColor)
-		bg = color.Black
-	}
+	fg := getColor(o.FgColor, color.Black)
+	bg := getColor(o.BgColor, color.Transparent)
 
 	switch o.Type {
 	case "qr":

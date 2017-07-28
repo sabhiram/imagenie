@@ -100,14 +100,14 @@ outputs:
     background: ./assets/bg.jpeg
     overlays:
       - type: text
-        foreground: "white"         
+        foreground: "#ff0000"         
         background: "transparent"   
         xoffset: 40
         yoffset: 40
         size: 40
         template: "Hi, I am {{ .gopher_name }}!"
       - type: text
-        foreground: "white"         
+        foreground: "#00ff00"         
         background: "transparent"   
         xoffset: 40
         yoffset: 440
@@ -138,7 +138,7 @@ outputs:
         size: 40
         template: "Hi, I am {{ .gopher_name }}!"
       - type: qr
-        foreground: "black"         
+        foreground: "#FF0000"         
         background: "white"   
         xoffset: 40
         yoffset: 140
