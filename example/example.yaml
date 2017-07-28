@@ -106,6 +106,23 @@ outputs:
         yoffset: 40
         size: 40
         template: "Hi, I am {{ .gopher_name }}!"
+      - type: text
+        foreground: "white"         
+        background: "transparent"   
+        xoffset: 40
+        yoffset: 440
+        size: 25
+        template: "I visited {{ .planet_name }} on {{ .visit_date }}."
+        #
+        #  Image overlays
+        #
+        #       The template for the image is the path to the file you wish
+        #       to use.  This allows us to choose a dynamic list of sequential
+        #       (for example) images.
+      - type: image
+        xoffset: 320
+        yoffset: 170
+        template: ./assets/gopher.png
 
   - prefix: name_with_id
     background: ./assets/bg.jpeg
@@ -127,4 +144,15 @@ outputs:
         yoffset: 140
         size: 256
         template: "Gopher {{ .gopher_name }} has ID : {{ .gopher_id }}"
+      - type: image
+        xoffset: 320
+        yoffset: 170
+        template: ./assets/gopher.png
+      - type: text
+        foreground: "white"         
+        background: "transparent"   
+        xoffset: 40
+        yoffset: 440
+        size: 25
+        template: "I visited {{ .planet_name }} on {{ .visit_date }}."
 

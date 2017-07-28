@@ -19,6 +19,7 @@ import (
 	"io/ioutil"
 
 	"github.com/sabhiram/imagenie/composite"
+	"github.com/sabhiram/imagenie/composite/image"
 	"github.com/sabhiram/imagenie/composite/qr"
 	"github.com/sabhiram/imagenie/composite/text"
 )
@@ -117,6 +118,8 @@ func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderab
 		return qr.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
 	case "text":
 		return text.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
+	case "image":
+		return image.NewOverlay(o.XOffset, o.YOffset, buf.String()), nil
 	}
 	return nil, fmt.Errorf("invalid renderable for overlay type: %s", o.Type)
 }
