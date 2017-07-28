@@ -4,7 +4,7 @@ Ok, so the inter-go-lactic foundation has tasked you with providing a million im
 
 This directory contains all the assets needed to run the `imagenie` tool, and overlay this background:
 
-![background](https://raw.githubusercontent.com/sabhiram/imagenie/master/example/assets/bg.png)
+![background](https://raw.githubusercontent.com/sabhiram/imagenie/master/example/assets/bg.jpeg)
 
 With this sexy gopher:
 
