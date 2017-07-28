@@ -25,6 +25,12 @@
 			"revision": ""
 		},
 		{
+			"checksumSHA1": "VMAg35RiK4lB2AWuA34n66CenME=",
+			"path": "github.com/lucasb-eyer/go-colorful",
+			"revision": "d1be5f1fbc7f63e693f460df83d52772eae2ca54",
+			"revisionTime": "2017-07-09T22:14:42Z"
+		},
+		{
 			"checksumSHA1": "r5eQHkttko6kxroDEENXbmXKrSs=",
 			"path": "github.com/nfnt/resize",
 			"revision": "891127d8d1b52734debe1b3c3d7e747502b6c366",
