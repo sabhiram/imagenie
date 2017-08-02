@@ -68,16 +68,6 @@ var (
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type Overlay struct {
-	Type     string `yaml:"type"`
-	XOffset  int    `yaml:"xoffset"`
-	YOffset  int    `yaml:"yoffset"`
-	Size     int    `yaml:"size"`
-	Template string `yaml:"template"`
-	FgColor  string `yaml:"foreground"`
-	BgColor  string `yaml:"background"`
-}
-
 // Hex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
 // NOTE: This code has been borrowed and adapted from:
 // 		 https://github.com/lucasb-eyer/go-colorful/blob/master/colors.go
@@ -127,39 +117,78 @@ func getColor(c string, defaultColor color.Color) color.Color {
 	return defaultColor
 }
 
-func (o *Overlay) GetRenderable(ctxt map[string]interface{}) (composite.Renderable, error) {
+////////////////////////////////////////////////////////////////////////////////
+
+func defaultIntValue(v, def int) int {
+	if v == 0 {
+		return def
+	}
+	return v
+}
+
+////////////////////////////////////////////////////////////////////////////////
+
+// OverlayOpts specifies the possible options to configure a given overlay type.
+// The types of overlays that each option applies to are specified in the
+// comment to the right of the declaration.
+type OverlayOpts struct {
+	Type     string `yaml:"type"`       // Image, QR, Text
+	XOffset  int    `yaml:"xoffset"`    // Image, QR, Text
+	YOffset  int    `yaml:"yoffset"`    // Image, QR, Text
+	Size     int    `yaml:"size"`       // Image, QR, Text
+	Dpi      int    `yaml:"dpi"`        // Text
+	Template string `yaml:"template"`   // Image, QR, Text
+	FgColor  string `yaml:"foreground"` // QR, Text
+	BgColor  string `yaml:"background"` // QR, Text
+}
+
+// GetRenderable returns a `Renderable` interface based on the underlying overlay
+// options.
+func (o *OverlayOpts) GetRenderable(ctxt map[string]interface{}) (composite.Renderable, error) {
 	var buf bytes.Buffer
 	t := template.Must(template.New("output").Funcs(funcMap).Parse(o.Template))
 	if err := t.Execute(&buf, ctxt); err != nil {
 		log.Fatalf("Unable to execute template, error: %s\n", err.Error())
 	}
 
-	// Setup foreground color.
+	// The templated value is the string to either print or QR in the case
+	// of those overlay types.  In the case of the image type, it is a path to
+	// the image to inject to allow for a dynamic range of images to be used.
+	tv := buf.String()
+
+	// Default values in case they are not configured
+	xo := o.XOffset                   // Default: 0
+	yo := o.YOffset                   // Default: 0
+	sz := defaultIntValue(o.Size, 12) // Default: 12 "pt"
+	dp := defaultIntValue(o.Dpi, 72)  // Default: 72 dpi
 	fg := getColor(o.FgColor, color.Black)
 	bg := getColor(o.BgColor, color.Transparent)
 
 	switch o.Type {
 	case "qr":
-		return qr.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
+		return qr.NewOverlay(xo, yo, sz, fg, bg, tv), nil
 	case "text":
-		return text.NewOverlay(o.XOffset, o.YOffset, o.Size, buf.String(), fg, bg), nil
+		return text.NewOverlay(xo, yo, sz, dp, fg, bg, tv), nil
 	case "image":
-		return image.NewOverlay(o.XOffset, o.YOffset, buf.String()), nil
+		return image.NewOverlay(xo, yo, tv), nil
 	}
 	return nil, fmt.Errorf("invalid renderable for overlay type: %s", o.Type)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
+// Output represents a single job to be done for a given background image, and
+// the list of overlays that are to be applied to the same.
 type Output struct {
-	Prefix     string     `yaml:"prefix"`
-	Background string     `yaml:"background"`
-	Overlays   []*Overlay `yaml:"overlays"`
+	Prefix     string         `yaml:"prefix"`
+	Background string         `yaml:"background"`
+	Overlays   []*OverlayOpts `yaml:"overlays"`
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-type Specification struct {
+// Config represents the config file needed to run the program.
+type Config struct {
 	FontPath string                   `yaml:"fontpath"`
 	Context  map[string]interface{}   `yaml:"context"`
 	Items    []map[string]interface{} `yaml:"items"`
@@ -182,27 +211,31 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var s Specification
-	err = yaml.Unmarshal(raw, &s)
+	var cfg Config
+	err = yaml.Unmarshal(raw, &cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Load the global font that is specified in the sample file.
-	text.SetupFont(s.FontPath)
+	text.SetupFont(cfg.FontPath)
 
-	for index, m := range s.Items {
-		// Build the context for each metadata item.
-		ctxt := s.Context
-		for k, v := range m {
-			ctxt[k] = v
-		}
+	// Iterate through all the "jobs" that we need to carry out.
+	for _, output := range cfg.Outputs {
+		log.Printf("Processing job with prefix: %s (%s)\n", output.Prefix, output.Background)
+		for index, m := range cfg.Items {
+			log.Printf("  Processing item #%d\n", index+1)
 
-		// Iterate all the outputs needed for this item.
-		for _, output := range s.Outputs {
+			// Build the context for each metadata item.
+			ctxt := cfg.Context
+			for k, v := range m {
+				ctxt[k] = v
+			}
+
 			// Build the set of renderables to build the ouput image.
 			renderables := []composite.Renderable{}
-			for _, overlay := range output.Overlays {
+			for idx, overlay := range output.Overlays {
+				log.Printf("    * adding %s overlay at index %d\n", overlay.Type, idx+1)
 				renderable, err := overlay.GetRenderable(ctxt)
 				if err != nil {
 					log.Fatalf("Unable to get renderable for overlay. Error: %s\n", err.Error())
@@ -226,28 +259,10 @@ func main() {
 			if err := png.Encode(outFd, img); err != nil {
 				log.Fatalf("Unable to encode file to png. %s\n", err.Error())
 			}
+			log.Printf("  --> Generated output file: %s\n", outFp)
 		}
+		log.Printf("\n")
 	}
-
-	////////////////////////////////////////////////////////////
-
-	// Build the inside image based on the background.
-	// img, err := composite.BuildImage("./assets/PPIV_Inside.png", []composite.Renderable{
-	// 	// Current value in PIVs and dollars.
-	// 	text.NewOverlay(284, 250, 40, "Cash Value: $5.57"),
-	// 	text.NewOverlay(284, 295, 40, "PIVS: 2.000000000"),
-
-	// 	// QR code version of the private key.
-	// 	qr.NewOverlay(456, 560, 180, "87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ"),
-
-	// 	// Split-up text version of private key.
-	// 	text.NewOverlay(354, 560+182, 22, firstHalf("87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ")),
-	// 	text.NewOverlay(354, 560+182+20, 22, secondHalf("87eTMPUxKyiZTxEi6sdtUhRLcstWqCjva1ibxVdLg24zsH6o2XZ")),
-	// })
-	// if err != nil {
-	// 	log.Fatalf("Error: Unable to build image: %s\n", err.Error())
-	// }
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -258,7 +273,9 @@ func init() {
 	log.SetOutput(os.Stdout)
 
 	flag.StringVar(&CLI.outDir, "outdir", "output", "output directory to put images")
+	flag.StringVar(&CLI.outDir, "o", "output", "output directory to put images (short)")
 	flag.StringVar(&CLI.inFile, "infile", "", "path to file that specifies keys to print")
+	flag.StringVar(&CLI.inFile, "i", "", "path to file that specifies keys to print (short)")
 	flag.Parse()
 }
 

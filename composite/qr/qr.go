@@ -19,7 +19,7 @@ type Overlay struct {
 	bg         color.Color
 }
 
-func NewOverlay(x, y, w int, value string, fg, bg color.Color) *Overlay {
+func NewOverlay(x, y, w int, fg, bg color.Color, value string) *Overlay {
 	return &Overlay{
 		xoff:  x,
 		yoff:  y,

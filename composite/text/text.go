@@ -16,7 +16,6 @@ import (
 ////////////////////////////////////////////////////////////////////////////////
 
 const (
-	dpi     = float64(72)
 	spacing = float64(1.1)
 )
 
@@ -32,15 +31,17 @@ type Overlay struct {
 	xoff, yoff int
 	size       float64
 	value      string
+	dpi        float64
 	fg         color.Color
 	bg         color.Color
 }
 
-func NewOverlay(x, y, size int, value string, fg, bg color.Color) *Overlay {
+func NewOverlay(x, y, size, dpi int, fg, bg color.Color, value string) *Overlay {
 	return &Overlay{
 		xoff:  x,
 		yoff:  y,
 		size:  float64(size),
+		dpi:   float64(dpi),
 		value: value,
 		fg:    fg,
 		bg:    bg,
@@ -60,7 +61,7 @@ func (o *Overlay) Render() (image.Image, int, int, error) {
 	draw.Draw(img, img.Bounds(), bg, image.ZP, draw.Src)
 
 	c := freetype.NewContext()
-	c.SetDPI(dpi)
+	c.SetDPI(o.dpi)
 	c.SetFont(f)
 	c.SetFontSize(o.size)
 	c.SetClip(img.Bounds())

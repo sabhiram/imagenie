@@ -13,7 +13,6 @@ Renderable interface defined below.
 ////////////////////////////////////////////////////////////////////////////////
 
 import (
-	"fmt"
 	"image"
 	"image/color"
 	"os"
@@ -53,8 +52,7 @@ func BuildImage(bgpath string, items []Renderable) (*image.RGBA, error) {
 	}
 
 	// Overlay each renderable on top of the image.
-	for i, item := range items {
-		fmt.Printf("Applying overlay index: %d for item: %#v\n", i, item)
+	for _, item := range items {
 		img, xoff, yoff, err := item.Render()
 		if err != nil {
 			return nil, err
