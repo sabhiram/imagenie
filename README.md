@@ -1,5 +1,7 @@
 # imagenie
 
+[![Build Status](https://travis-ci.org/sabhiram/imagenie.svg?branch=master)](https://travis-ci.org/sabhiram/imagenie)
+
 Batch overlay background images with text and QR codes.
 
 ## Why?
