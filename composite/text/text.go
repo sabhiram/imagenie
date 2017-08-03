@@ -25,9 +25,25 @@ var (
 	f *truetype.Font
 )
 
+func SetupFont(fontpath string) {
+	// Read the font data.
+	fontBytes, err := ioutil.ReadFile(fontpath)
+	if err != nil {
+		panic("Unable to read font file " + fontpath)
+	}
+
+	f, err = freetype.ParseFont(fontBytes)
+	if err != nil {
+		panic("Unable to parse font file " + fontpath)
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
 
 type Overlay struct {
+	rotation   int
 	xoff, yoff int
 	size       float64
 	value      string
@@ -36,21 +52,22 @@ type Overlay struct {
 	bg         color.Color
 }
 
-func NewOverlay(x, y, size, dpi int, fg, bg color.Color, value string) *Overlay {
+func NewOverlay(ro, x, y, size, dpi int, fg, bg color.Color, value string) *Overlay {
 	return &Overlay{
-		xoff:  x,
-		yoff:  y,
-		size:  float64(size),
-		dpi:   float64(dpi),
-		value: value,
-		fg:    fg,
-		bg:    bg,
+		rotation: ro,
+		xoff:     x,
+		yoff:     y,
+		size:     float64(size),
+		dpi:      float64(dpi),
+		value:    value,
+		fg:       fg,
+		bg:       bg,
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (o *Overlay) Render() (image.Image, int, int, error) {
+func (o *Overlay) Render() (image.Image, int, int, int, error) {
 	// Create an image to render the text on.
 	img := image.NewRGBA(image.Rect(0, 0, int(o.size*spacing*float64(len(o.value))), int(o.size*1.5)))
 
@@ -70,26 +87,21 @@ func (o *Overlay) Render() (image.Image, int, int, error) {
 	c.SetHinting(font.HintingNone)
 
 	// Render the text on the context.
-	pt := freetype.Pt(45, int(c.PointToFixed(o.size)>>6))
-	if _, err := c.DrawString(o.value, pt); err != nil {
-		return nil, 0, 0, err
-	}
-	return img, o.xoff, o.yoff, nil
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-func SetupFont(fontpath string) {
-	// Read the font data.
-	fontBytes, err := ioutil.ReadFile(fontpath)
+	ptl := freetype.Pt(0, int(c.PointToFixed(o.size)>>6))
+	ptr, err := c.DrawString(o.value, ptl)
 	if err != nil {
-		panic("Unable to read font file " + fontpath)
+		return nil, 0, 0, 0, err
 	}
 
-	f, err = freetype.ParseFont(fontBytes)
-	if err != nil {
-		panic("Unable to parse font file " + fontpath)
+	xmax := ptr.X.Ceil() + 2
+	ymax := ptr.Y.Ceil() + 2
+	imgout := image.NewRGBA(image.Rect(0, 0, xmax, ymax))
+	for i := 0; i < xmax; i++ {
+		for j := 0; j < ymax; j++ {
+			imgout.Set(i, j, img.At(i, j))
+		}
 	}
+	return imgout, o.rotation, o.xoff, o.yoff, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////

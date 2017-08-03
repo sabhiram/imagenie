@@ -1,4 +1,4 @@
-# 
+#
 #  imagenie example yaml file.
 #
 #     The following file is an attempt to document and illustrate the usage
@@ -6,7 +6,7 @@
 #       1.  Global settings
 #       2.  Common context variables
 #       3.  Items
-#       4.  Outputs 
+#       4.  Outputs
 #
 #     Each section is documented below, before it's usage.  In this example
 #     we have been tasked
@@ -17,8 +17,8 @@
 #
 #     Currently, the only available global setting is the path to the font-
 #     file to be used when rasterizing text for any text overlays.
-#     
-#     In case of this example, we set this to point at the 
+#
+#     In case of this example, we set this to point at the
 #     `UbuntuMono-Bold.ttf` file available in the `assets` directory.
 #
 fontpath: ./assets/UbuntuMono-Bold.ttf
@@ -30,7 +30,7 @@ fontpath: ./assets/UbuntuMono-Bold.ttf
 #     output step.  The context is merged with each individual item
 #     being processed from the `items` section below.
 #
-#     In this case, we define the planet and the date when the gophers 
+#     In this case, we define the planet and the date when the gophers
 #     visited.
 #
 context:
@@ -39,11 +39,11 @@ context:
 
 #
 #   Section 3.  Items
-#  
-#     The items section contains a list of objects that have a bunch of 
-#     (key,value) pairs.  These can be arbitrary and will be used to inject 
+#
+#     The items section contains a list of objects that have a bunch of
+#     (key,value) pairs.  These can be arbitrary and will be used to inject
 #     values into any of the template strings in the "outputs" section.
-#     
+#
 #     In this case, the `gopher_name` and `gopher_id` will be merged with
 #     the context above for each gopher and run against the outputs.
 #
@@ -62,53 +62,53 @@ items:
 #
 #   Section 4.  Outputs
 #
-#   Each output can be thought of as a "job" which will be run on the 
+#   Each output can be thought of as a "job" which will be run on the
 #   specified `background` image path.  The `prefix` will be appended
-#   to the index of the item being generated.  
+#   to the index of the item being generated.
 #
 #   In this case, we have only been asked to generate images with the
 #   gopher's name, but you have a feeling that you might need to generate
 #   their ID as well - so lets define two outputs: "name" and "name_with_id".
 #   The "name_with_id" case will also generate a QR code with this gopher's
-#   id in it. 
+#   id in it.
 #
 outputs:
     #
     #  Overlays
     #
-    #     Overlays are how we define what gets superimposed on the base image. 
+    #     Overlays are how we define what gets superimposed on the base image.
     #     Each overlay contains a `type` which is limited to "image", "qr" and
     #     "text".  Any other type will cause an error when the tool runs.
-    #     
+    #
     #     Each overlay has the same properties, all of which must be specified:
     #       type      -   type of overlay ["image", "qr", "text"]
-    #       xoffset   -   offset in pixels from the left 
+    #       xoffset   -   offset in pixels from the left
     #       yoffset   -   offset in pixels from the top
-    #       size      -   this is overlay specific, font size for text types 
+    #       size      -   this is overlay specific, font size for text types
     #                     and the size of the image for qr and image types
-    #       value     -   the data to be used for text / qr encoding (after 
+    #       value     -   the data to be used for text / qr encoding (after
     #                     templating), in the event of image type overlays,
     #                     it is a path to the image.
     #
     #     The overlays also have some optional parameters to setup / override
     #     things like the background / foreground color.
     #
-    #     In the first case we define two simple overlays, one for the text to 
+    #     In the first case we define two simple overlays, one for the text to
     #     declare the gopher's name and another to draw the gopher's image.
     #
   - prefix: name
     background: ./assets/bg.jpeg
     overlays:
       - type: text
-        foreground: "#ff0000"         
-        background: "transparent"   
+        foreground: "#ff0000"
+        background: "#00ff00"
         xoffset: 40
         yoffset: 40
         size: 40
         template: "Hi, I am {{ .gopher_name }}!"
       - type: text
-        foreground: "#00ff00"         
-        background: "transparent"   
+        foreground: "#00ff00"
+        background: "transparent"
         xoffset: 40
         yoffset: 440
         size: 25
@@ -120,6 +120,7 @@ outputs:
         #       to use.  This allows us to choose a dynamic list of sequential
         #       (for example) images.
       - type: image
+        rotation: 60
         xoffset: 320
         yoffset: 170
         template: ./assets/gopher.png
@@ -131,15 +132,15 @@ outputs:
     #  type.
     overlays:
       - type: text
-        foreground: "white"         
-        background: "transparent"   
+        foreground: "white"
+        background: "transparent"
         xoffset: 40
         yoffset: 40
         size: 40
         template: "Hi, I am {{ .gopher_name }}!"
       - type: qr
-        foreground: "#FF0000"         
-        background: "white"   
+        foreground: "#FF0000"
+        background: "white"
         xoffset: 40
         yoffset: 140
         size: 256
@@ -149,8 +150,8 @@ outputs:
         yoffset: 170
         template: ./assets/gopher.png
       - type: text
-        foreground: "white"         
-        background: "transparent"   
+        foreground: "white"
+        background: "transparent"
         xoffset: 40
         yoffset: 440
         size: 25

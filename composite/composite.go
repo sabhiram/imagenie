@@ -17,6 +17,8 @@ import (
 	"image/color"
 	"os"
 
+	"github.com/disintegration/imaging"
+
 	_ "image/jpeg"
 	_ "image/png"
 )
@@ -24,7 +26,7 @@ import (
 ////////////////////////////////////////////////////////////////////////////////
 
 type Renderable interface {
-	Render() (image.Image, int, int, error)
+	Render() (image.Image, int, int, int, error)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,9 +55,14 @@ func BuildImage(bgpath string, items []Renderable) (*image.RGBA, error) {
 
 	// Overlay each renderable on top of the image.
 	for _, item := range items {
-		img, xoff, yoff, err := item.Render()
+		primg, rot, xoff, yoff, err := item.Render()
 		if err != nil {
 			return nil, err
+		}
+
+		img := primg
+		if rot > 0 && rot < 360 {
+			img = imaging.Rotate(primg, float64(rot), color.Transparent)
 		}
 
 		inbounds := img.Bounds()

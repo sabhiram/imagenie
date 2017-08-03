@@ -38,6 +38,7 @@ Similar to QR overlays, the text overlays will also require the X and Y offsets 
       - type: text
         foreground: "white"
         background: "transparent"
+        rotation: 90
         xoffset: 40
         yoffset: 40
         size: 40
@@ -80,6 +81,8 @@ The default foreground color is black, and the default background is transparent
 1. `black`, `white` and `transparent` - are valid values.
 2. Any hex value in the form of "#FFFFFF" (white)
 3. Any hex value in the form of "#F00" (red)
+
+You can additionally specify the rotation that needs to be applied to a given overlay.  All rotations will be applied before the offsetting of x and y, and the rotations will be counter-clockwise.  Valid values include any number from 0-360.  The default rotation will be 0 degrees.
 
 ## Sample Usage
 

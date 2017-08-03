@@ -12,6 +12,7 @@ import (
 ////////////////////////////////////////////////////////////////////////////////
 
 type Overlay struct {
+	rotation   int
 	xoff, yoff int
 	width      int
 	value      string
@@ -19,23 +20,24 @@ type Overlay struct {
 	bg         color.Color
 }
 
-func NewOverlay(x, y, w int, fg, bg color.Color, value string) *Overlay {
+func NewOverlay(ro, x, y, w int, fg, bg color.Color, value string) *Overlay {
 	return &Overlay{
-		xoff:  x,
-		yoff:  y,
-		width: w,
-		value: value,
-		fg:    fg,
-		bg:    bg,
+		rotation: ro,
+		xoff:     x,
+		yoff:     y,
+		width:    w,
+		value:    value,
+		fg:       fg,
+		bg:       bg,
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-func (o *Overlay) Render() (image.Image, int, int, error) {
+func (o *Overlay) Render() (image.Image, int, int, int, error) {
 	qr, err := qrcode.New(o.value, qrcode.Highest)
 	if err != nil {
-		return nil, 0, 0, err
+		return nil, 0, 0, 0, err
 	}
 
 	qr.ForegroundColor = o.fg
@@ -45,7 +47,7 @@ func (o *Overlay) Render() (image.Image, int, int, error) {
 	// additional feature to scale the image up to avoid the QR having a large
 	// offset. The scaling algorithm uses Lanczos3 as the filter, and can
 	// be disabled if the results are undesirable.
-	return qr.ImageNoPadding(o.width), o.xoff, o.yoff, nil
+	return qr.ImageNoPadding(o.width), o.rotation, o.xoff, o.yoff, nil
 }
 
 ////////////////////////////////////////////////////////////////////////////////

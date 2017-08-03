@@ -133,6 +133,7 @@ func defaultIntValue(v, def int) int {
 // comment to the right of the declaration.
 type OverlayOpts struct {
 	Type     string `yaml:"type"`       // Image, QR, Text
+	Rotation int    `yaml:"rotation"`   // Image, QR, Text
 	XOffset  int    `yaml:"xoffset"`    // Image, QR, Text
 	YOffset  int    `yaml:"yoffset"`    // Image, QR, Text
 	Size     int    `yaml:"size"`       // Image, QR, Text
@@ -157,20 +158,21 @@ func (o *OverlayOpts) GetRenderable(ctxt map[string]interface{}) (composite.Rend
 	tv := buf.String()
 
 	// Default values in case they are not configured
-	xo := o.XOffset                   // Default: 0
-	yo := o.YOffset                   // Default: 0
-	sz := defaultIntValue(o.Size, 12) // Default: 12 "pt"
-	dp := defaultIntValue(o.Dpi, 72)  // Default: 72 dpi
+	xo := o.XOffset                      // Default: 0
+	yo := o.YOffset                      // Default: 0
+	sz := defaultIntValue(o.Size, 12)    // Default: 12 "pt"
+	dp := defaultIntValue(o.Dpi, 72)     // Default: 72 dpi
+	ro := defaultIntValue(o.Rotation, 0) // Default: 0 degrees
 	fg := getColor(o.FgColor, color.Black)
 	bg := getColor(o.BgColor, color.Transparent)
 
 	switch o.Type {
 	case "qr":
-		return qr.NewOverlay(xo, yo, sz, fg, bg, tv), nil
+		return qr.NewOverlay(ro, xo, yo, sz, fg, bg, tv), nil
 	case "text":
-		return text.NewOverlay(xo, yo, sz, dp, fg, bg, tv), nil
+		return text.NewOverlay(ro, xo, yo, sz, dp, fg, bg, tv), nil
 	case "image":
-		return image.NewOverlay(xo, yo, tv), nil
+		return image.NewOverlay(ro, xo, yo, tv), nil
 	}
 	return nil, fmt.Errorf("invalid renderable for overlay type: %s", o.Type)
 }
