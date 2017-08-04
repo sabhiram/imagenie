@@ -9,10 +9,12 @@ import (
 	"flag"
 	"fmt"
 	"image/color"
+	"image/jpeg"
 	"image/png"
 	"log"
 	"os"
 	"path"
+	"strings"
 	"text/template"
 
 	"gopkg.in/yaml.v2"
@@ -70,7 +72,7 @@ var (
 
 // Hex parses a "html" hex color-string, either in the 3 "#f0c" or 6 "#ff1034" digits form.
 // NOTE: This code has been borrowed and adapted from:
-// 		 https://github.com/lucasb-eyer/go-colorful/blob/master/colors.go
+//       https://github.com/lucasb-eyer/go-colorful/blob/master/colors.go
 func Hex(scol string) (color.Color, error) {
 	format := "#%02x%02x%02x"
 	factor := 1.0
@@ -191,10 +193,11 @@ type Output struct {
 
 // Config represents the config file needed to run the program.
 type Config struct {
-	FontPath string                   `yaml:"fontpath"`
-	Context  map[string]interface{}   `yaml:"context"`
-	Items    []map[string]interface{} `yaml:"items"`
-	Outputs  []*Output                `yaml:"outputs"`
+	FontPath     string                   `yaml:"fontpath"`
+	Context      map[string]interface{}   `yaml:"context"`
+	Items        []map[string]interface{} `yaml:"items"`
+	Outputs      []*Output                `yaml:"outputs"`
+	OutputFormat string                   `yaml:"output_format"`
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +220,10 @@ func main() {
 	err = yaml.Unmarshal(raw, &cfg)
 	if err != nil {
 		log.Fatal(err)
+	}
+
+	if len(cfg.OutputFormat) == 0 {
+		cfg.OutputFormat = "jpeg"
 	}
 
 	// Load the global font that is specified in the sample file.
@@ -251,15 +258,24 @@ func main() {
 				log.Fatalf("Unable to build image, error: %s\n", err.Error())
 			}
 
-			outFp := path.Join(CLI.outDir, fmt.Sprintf("%04d_%s.png", index, output.Prefix))
+			outFp := path.Join(CLI.outDir, fmt.Sprintf("%04d_%s.%s", index, output.Prefix, cfg.OutputFormat))
 			outFd, err := os.OpenFile(outFp, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
 			if err != nil {
 				log.Fatalf("Unable to open file for write. %s\n", err.Error())
 			}
 			defer outFd.Close()
 
-			if err := png.Encode(outFd, img); err != nil {
-				log.Fatalf("Unable to encode file to png. %s\n", err.Error())
+			switch strings.ToLower(cfg.OutputFormat) {
+			case "png":
+				if err := png.Encode(outFd, img); err != nil {
+					log.Fatalf("Unable to encode file to png. %s\n", err.Error())
+				}
+			case "jpeg", "jpg":
+				if err := jpeg.Encode(outFd, img, nil); err != nil {
+					log.Fatalf("Unable to encode file to jpeg. %s\n", err.Error())
+				}
+			default:
+				log.Fatalf("Bad output format specified: %s\n", cfg.OutputFormat)
 			}
 			log.Printf("  --> Generated output file: %s\n", outFp)
 		}

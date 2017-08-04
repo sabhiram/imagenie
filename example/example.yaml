@@ -22,6 +22,7 @@
 #     `UbuntuMono-Bold.ttf` file available in the `assets` directory.
 #
 fontpath: ./assets/UbuntuMono-Bold.ttf
+output_format: jpeg
 
 #
 #   Section 2.  Common context variables
@@ -101,7 +102,7 @@ outputs:
     overlays:
       - type: text
         foreground: "#ff0000"
-        background: "#00ff00"
+        background: "#00ff00+"
         xoffset: 40
         yoffset: 40
         size: 40
