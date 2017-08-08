@@ -65,6 +65,9 @@ var (
 		"precise4": func(a float64) string {
 			return fmt.Sprintf("%.4f", a)
 		},
+		"precise2": func(a float64) string {
+			return fmt.Sprintf("%.2f", a)
+		},
 	}
 )
 
@@ -128,6 +131,13 @@ func defaultIntValue(v, def int) int {
 	return v
 }
 
+func defaultStringValue(v, def string) string {
+	if len(v) == 0 {
+		return def
+	}
+	return v
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 // OverlayOpts specifies the possible options to configure a given overlay type.
@@ -140,6 +150,7 @@ type OverlayOpts struct {
 	YOffset  int    `yaml:"yoffset"`    // Image, QR, Text
 	Size     int    `yaml:"size"`       // Image, QR, Text
 	Dpi      int    `yaml:"dpi"`        // Text
+	FontPath string `yaml:"fontpath"`   // Text
 	Template string `yaml:"template"`   // Image, QR, Text
 	FgColor  string `yaml:"foreground"` // QR, Text
 	BgColor  string `yaml:"background"` // QR, Text
@@ -147,7 +158,7 @@ type OverlayOpts struct {
 
 // GetRenderable returns a `Renderable` interface based on the underlying overlay
 // options.
-func (o *OverlayOpts) GetRenderable(ctxt map[string]interface{}) (composite.Renderable, error) {
+func (o *OverlayOpts) GetRenderable(ctxt map[string]interface{}, cfg *Config) (composite.Renderable, error) {
 	var buf bytes.Buffer
 	t := template.Must(template.New("output").Funcs(funcMap).Parse(o.Template))
 	if err := t.Execute(&buf, ctxt); err != nil {
@@ -167,12 +178,13 @@ func (o *OverlayOpts) GetRenderable(ctxt map[string]interface{}) (composite.Rend
 	ro := defaultIntValue(o.Rotation, 0) // Default: 0 degrees
 	fg := getColor(o.FgColor, color.Black)
 	bg := getColor(o.BgColor, color.Transparent)
+	fp := defaultStringValue(o.FontPath, cfg.FontPath)
 
 	switch o.Type {
 	case "qr":
 		return qr.NewOverlay(ro, xo, yo, sz, fg, bg, tv), nil
 	case "text":
-		return text.NewOverlay(ro, xo, yo, sz, dp, fg, bg, tv), nil
+		return text.NewOverlay(ro, xo, yo, sz, dp, fp, fg, bg, tv), nil
 	case "image":
 		return image.NewOverlay(ro, xo, yo, tv), nil
 	}
@@ -226,9 +238,6 @@ func main() {
 		cfg.OutputFormat = "jpeg"
 	}
 
-	// Load the global font that is specified in the sample file.
-	text.SetupFont(cfg.FontPath)
-
 	// Iterate through all the "jobs" that we need to carry out.
 	for _, output := range cfg.Outputs {
 		log.Printf("Processing job with prefix: %s (%s)\n", output.Prefix, output.Background)
@@ -245,7 +254,8 @@ func main() {
 			renderables := []composite.Renderable{}
 			for idx, overlay := range output.Overlays {
 				log.Printf("    * adding %s overlay at index %d\n", overlay.Type, idx+1)
-				renderable, err := overlay.GetRenderable(ctxt)
+
+				renderable, err := overlay.GetRenderable(ctxt, &cfg)
 				if err != nil {
 					log.Fatalf("Unable to get renderable for overlay. Error: %s\n", err.Error())
 				}

@@ -48,17 +48,19 @@ type Overlay struct {
 	size       float64
 	value      string
 	dpi        float64
+	fontPath   string
 	fg         color.Color
 	bg         color.Color
 }
 
-func NewOverlay(ro, x, y, size, dpi int, fg, bg color.Color, value string) *Overlay {
+func NewOverlay(ro, x, y, size, dpi int, fp string, fg, bg color.Color, value string) *Overlay {
 	return &Overlay{
 		rotation: ro,
 		xoff:     x,
 		yoff:     y,
 		size:     float64(size),
 		dpi:      float64(dpi),
+		fontPath: fp,
 		value:    value,
 		fg:       fg,
 		bg:       bg,
@@ -68,6 +70,8 @@ func NewOverlay(ro, x, y, size, dpi int, fg, bg color.Color, value string) *Over
 ////////////////////////////////////////////////////////////////////////////////
 
 func (o *Overlay) Render() (image.Image, int, int, int, error) {
+	SetupFont(o.fontPath)
+
 	// Create an image to render the text on.
 	img := image.NewRGBA(image.Rect(0, 0, int(o.size*spacing*float64(len(o.value))), int(o.size*1.5)))
 
