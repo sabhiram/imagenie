@@ -72,8 +72,10 @@ func NewOverlay(ro, x, y, size, dpi int, fp string, fg, bg color.Color, value st
 func (o *Overlay) Render() (image.Image, int, int, int, error) {
 	SetupFont(o.fontPath)
 
+	scale := float64(o.dpi) / 72.0
+
 	// Create an image to render the text on.
-	img := image.NewRGBA(image.Rect(0, 0, int(o.size*spacing*float64(len(o.value))), int(o.size*1.5)))
+	img := image.NewRGBA(image.Rect(0, 0, int(o.size*spacing*float64(len(o.value))*scale), int(o.size*1.5*scale)))
 
 	fg := image.NewUniform(o.fg)
 	bg := image.NewUniform(o.bg)
