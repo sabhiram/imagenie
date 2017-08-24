@@ -9,8 +9,7 @@ import (
 	"flag"
 	"fmt"
 	"image/color"
-	"image/jpeg"
-	"image/png"
+	"io/ioutil"
 	"log"
 	"os"
 	"path"
@@ -18,7 +17,6 @@ import (
 	"text/template"
 
 	"gopkg.in/yaml.v2"
-	"io/ioutil"
 
 	"github.com/sabhiram/imagenie/composite"
 	"github.com/sabhiram/imagenie/composite/image"
@@ -30,9 +28,11 @@ import (
 
 var (
 	CLI = struct {
-		outDir string   // output directory
-		inFile string   // input file with pub and private keys
-		args   []string // other args
+		outDir         string   // output directory
+		inFile         string   // input file with pub and private keys
+		magickBins     string   // path to the convert and compose binaries
+		useImageMagick bool     // (internal) enabled if imagemagick path is legit
+		args           []string // other args
 	}{}
 )
 
@@ -205,6 +205,7 @@ type Output struct {
 
 // Config represents the config file needed to run the program.
 type Config struct {
+	ColorSpace   string                   `yaml:"colorspace"`
 	FontPath     string                   `yaml:"fontpath"`
 	Context      map[string]interface{}   `yaml:"context"`
 	Items        []map[string]interface{} `yaml:"items"`
@@ -238,6 +239,20 @@ func main() {
 		cfg.OutputFormat = "jpeg"
 	}
 
+	cfg.ColorSpace = strings.ToLower(cfg.ColorSpace)
+	switch cfg.ColorSpace {
+	case "rgba", "cmyk":
+	default:
+		cfg.ColorSpace = "rgba"
+	}
+
+	if !CLI.useImageMagick && cfg.ColorSpace == "cmyk" && (cfg.OutputFormat == "jpeg" || cfg.OutputFormat == "jpg") {
+		log.Fatalf(`Fatal error: CMYK colorspace is not supported by the native renderer.
+Consider specifying a path to ImageMagick binaries to generate the appropriate output images
+using the "--magic" option.
+`)
+	}
+
 	// Iterate through all the "jobs" that we need to carry out.
 	for _, output := range cfg.Outputs {
 		log.Printf("Processing job with prefix: %s (%s)\n", output.Prefix, output.Background)
@@ -262,34 +277,23 @@ func main() {
 				renderables = append(renderables, renderable)
 			}
 
+			offmt := cfg.OutputFormat
+			ofcs := cfg.ColorSpace
+			ofpath := path.Join(CLI.outDir, fmt.Sprintf("%04d_%s.%s", index, output.Prefix, offmt))
+
 			// Generate the output image data.
-			img, err := composite.BuildImage(output.Background, renderables)
-			if err != nil {
-				log.Fatalf("Unable to build image, error: %s\n", err.Error())
+			if CLI.useImageMagick {
+				if err := composite.BuildImageWithMagick(CLI.magickBins, output.Background, ofpath, offmt, ofcs, renderables); err != nil {
+					log.Fatalf("Unable to build image, error: %s\n", err.Error())
+				}
+			} else {
+				if err := composite.BuildImage(output.Background, ofpath, offmt, renderables); err != nil {
+					log.Fatalf("Unable to build image, error: %s\n", err.Error())
+				}
 			}
 
-			outFp := path.Join(CLI.outDir, fmt.Sprintf("%04d_%s.%s", index, output.Prefix, cfg.OutputFormat))
-			outFd, err := os.OpenFile(outFp, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0666)
-			if err != nil {
-				log.Fatalf("Unable to open file for write. %s\n", err.Error())
-			}
-			defer outFd.Close()
-
-			switch strings.ToLower(cfg.OutputFormat) {
-			case "png":
-				if err := png.Encode(outFd, img); err != nil {
-					log.Fatalf("Unable to encode file to png. %s\n", err.Error())
-				}
-			case "jpeg", "jpg":
-				if err := jpeg.Encode(outFd, img, nil); err != nil {
-					log.Fatalf("Unable to encode file to jpeg. %s\n", err.Error())
-				}
-			default:
-				log.Fatalf("Bad output format specified: %s\n", cfg.OutputFormat)
-			}
-			log.Printf("  --> Generated output file: %s\n", outFp)
+			log.Printf("  --> Generated output file: %s\n", ofpath)
 		}
-		log.Printf("\n")
 	}
 }
 
@@ -304,7 +308,24 @@ func init() {
 	flag.StringVar(&CLI.outDir, "o", "output", "output directory to put images (short)")
 	flag.StringVar(&CLI.inFile, "infile", "", "path to file that specifies keys to print")
 	flag.StringVar(&CLI.inFile, "i", "", "path to file that specifies keys to print (short)")
+	flag.StringVar(&CLI.magickBins, "magic", "", "path to imagemagick binaries (optional)")
+	flag.StringVar(&CLI.magickBins, "m", "", "path to imagemagick binaries (optional) (short)")
 	flag.Parse()
+
+	if len(CLI.magickBins) == 0 {
+		CLI.useImageMagick = false
+	} else {
+		// If imagemagick is enabled, verify that the binary path contains the convert and
+		// compose binaries.
+		if _, err := os.Stat(path.Join(CLI.magickBins, "convert")); os.IsNotExist(err) {
+			log.Fatalf("Imagemagick not correctly installed! convert utility missing!")
+		}
+		if _, err := os.Stat(path.Join(CLI.magickBins, "composite")); os.IsNotExist(err) {
+			log.Fatalf("Imagemagick not correctly installed! composite utility missing!")
+		}
+
+		CLI.useImageMagick = true
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////
